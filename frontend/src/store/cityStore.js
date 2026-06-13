@@ -12,9 +12,11 @@ export const useCityStore = create((set, get) => ({
   // Selection state
   hoveredBuilding: null,
   selectedBuilding: null,
+  selectedPlotIndex: null,
 
   // Camera mode
   cameraMode: 'orbit', // 'orbit' | 'drive' | 'interior'
+  themeMode: 'day',     // 'day' | 'night'
 
   // UI state
   activePanels: [],        // ['building', 'drive', 'chat']
@@ -33,7 +35,9 @@ export const useCityStore = create((set, get) => ({
   }),
   setHoveredBuilding: (id) => set({ hoveredBuilding: id }),
   setSelectedBuilding: (id) => set({ selectedBuilding: id }),
+  setSelectedPlotIndex: (index) => set({ selectedPlotIndex: index }),
   setCameraMode: (mode) => set({ cameraMode: mode }),
+  setThemeMode: (mode) => set({ themeMode: mode }),
   setTimeOfDay: (preset) => set({ timeOfDay: preset }),
   openPanel: (panel) => set((s) => ({ activePanels: [...new Set([...s.activePanels, panel])] })),
   closePanel: (panel) => set((s) => ({ activePanels: s.activePanels.filter(p => p !== panel) })),

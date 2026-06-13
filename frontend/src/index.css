@@ -83,6 +83,159 @@ body {
   font-size: 0.78rem;
 }
 
+.scene-controls {
+  position: absolute;
+  left: 24px;
+  bottom: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  max-width: min(560px, calc(100vw - 48px));
+  padding: 10px;
+  border-radius: 14px;
+  pointer-events: auto;
+}
+
+.scene-controls__segment {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.scene-controls button {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 700;
+  padding: 9px 12px;
+}
+
+.scene-controls button:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.scene-controls button.is-active {
+  border-color: rgba(255, 211, 107, 0.55);
+  background: rgba(255, 180, 59, 0.22);
+  color: #fff3cf;
+}
+
+.scene-controls p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.app-shell--day .glass-panel {
+  background: rgba(20, 27, 36, 0.74);
+}
+
+.app-shell--night .glass-panel {
+  background: rgba(8, 9, 14, 0.88);
+}
+
+.plot-files-panel {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: min(360px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  pointer-events: auto;
+  box-shadow: 0 18px 70px rgba(0, 0, 0, 0.36);
+}
+
+.plot-files-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.plot-files-panel__header h2 {
+  margin: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.25rem;
+  line-height: 1.15;
+}
+
+.plot-files-panel__header button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.plot-files-panel__eyebrow {
+  margin: 0 0 5px;
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.plot-files-panel__status,
+.plot-files-panel__empty {
+  margin: 0;
+  padding: 16px 18px;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.plot-files-panel__rooms {
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.plot-files-panel__room {
+  display: block;
+  padding: 12px;
+  border-radius: 10px;
+  color: var(--text-primary);
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.035);
+  margin-bottom: 8px;
+}
+
+.plot-files-panel__room span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.plot-files-panel__room strong {
+  display: block;
+  overflow: hidden;
+  color: white;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .scene-loader {
   display: flex;
   flex-direction: column;

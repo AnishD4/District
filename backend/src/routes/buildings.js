@@ -100,6 +100,9 @@ async function getDriveFolderBuilding(folderId) {
 
 export default async function buildingRoutes(fastify) {
   fastify.get('/:id', async (req, reply) => {
+    const demoBuilding = getDemoBuilding(req.params.id)
+    if (demoBuilding) return demoBuilding
+
     if (!isUuid(req.params.id)) {
       try {
         const driveBuilding = await getDriveFolderBuilding(req.params.id)
@@ -119,8 +122,6 @@ export default async function buildingRoutes(fastify) {
       .single()
 
     if (error || !data) {
-      const demoBuilding = getDemoBuilding(req.params.id)
-      if (demoBuilding) return demoBuilding
       return reply.code(404).send({ error: 'Building not found' })
     }
     return data
