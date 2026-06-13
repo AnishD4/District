@@ -9,6 +9,7 @@ import { MapCameraControls } from '../components/city/MapCameraControls';
 import { DriveConnectOverlay } from '../components/ui/DriveConnectOverlay';
 import { DriveModeOverlay } from '../components/ui/DriveModeOverlay';
 import { TimeOfDayToggle } from '../components/ui/TimeOfDayToggle';
+import { CityAssistantPanel } from '../components/ui/CityAssistantPanel';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useCityData } from '../hooks/useCityData';
 import { useCityStore } from '../store/cityStore';
@@ -173,6 +174,8 @@ export function CityPage() {
         <div className="app-time-toggle">
           <TimeOfDayToggle />
         </div>
+
+        {cameraMode === 'orbit' && <CityAssistantPanel />}
 
         <DriveModeOverlay />
         <DriveConnectOverlay />

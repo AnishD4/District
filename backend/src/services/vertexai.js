@@ -12,14 +12,14 @@ function getGenAI() {
 
 export function getGeminiPro() {
   return getGenAI().getGenerativeModel({
-    model: getEnv('GEMINI_CHAT_MODEL', 'gemini-2.0-flash'),
+    model: getEnv('GEMINI_CHAT_MODEL', 'gemini-3.5-flash'),
     generationConfig: { maxOutputTokens: 2048, temperature: 0.7 },
   })
 }
 
 export function getGeminiFlash() {
   return getGenAI().getGenerativeModel({
-    model: getEnv('GEMINI_FLASH_MODEL', 'gemini-2.0-flash'),
+    model: getEnv('GEMINI_FLASH_MODEL', 'gemini-3.1-flash-lite'),
     generationConfig: { maxOutputTokens: 512, temperature: 0.3 },
   })
 }

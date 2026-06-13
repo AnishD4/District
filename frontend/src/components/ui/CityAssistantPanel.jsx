@@ -154,6 +154,13 @@ export function CityAssistantPanel() {
 
   return (
     <section className="city-assistant glass-panel">
+      <div className="city-assistant__header">
+        <div>
+          <p>Drive Tools</p>
+          <h2>Find files and ask AI</h2>
+        </div>
+      </div>
+
       <div className="city-assistant__section">
         <label htmlFor="city-file-search">Search Drive files</label>
         <input
@@ -193,7 +200,7 @@ export function CityAssistantPanel() {
             placeholder="What is in my Drive city?"
           />
           <button type="submit" disabled={asking || !question.trim()}>
-            {asking ? 'Thinking' : 'Ask'}
+            {asking ? 'Thinking...' : 'Ask AI'}
           </button>
         </div>
         {error && <p className="city-assistant__error">{error}</p>}

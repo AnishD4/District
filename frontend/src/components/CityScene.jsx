@@ -396,6 +396,53 @@ function BuildingSpotlight({ metrics, height, palette }) {
   );
 }
 
+function InactivePlotBuilding({ shape, height, metrics }) {
+  const inactiveHeight = Math.max(10, height * 0.32);
+
+  const extrudeSettings = useMemo(() => ({
+    depth: inactiveHeight,
+    bevelEnabled: true,
+    bevelThickness: 0.3,
+    bevelSize: 0.3,
+    bevelSegments: 1,
+  }), [inactiveHeight]);
+
+  return (
+    <group>
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, 0.04, 0]}
+        receiveShadow
+      >
+        <extrudeGeometry args={[shape, extrudeSettings]} />
+        <meshStandardMaterial
+          color="#29313a"
+          emissive="#050709"
+          emissiveIntensity={0.02}
+          metalness={0.12}
+          roughness={0.86}
+          transparent
+          opacity={0.58}
+        />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, inactiveHeight + 0.08, 0]}>
+        <shapeGeometry args={[shape]} />
+        <meshStandardMaterial
+          color="#323a43"
+          roughness={0.9}
+          metalness={0.05}
+          transparent
+          opacity={0.5}
+        />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[metrics.centerX, inactiveHeight + 0.22, metrics.centerZ]}>
+        <ringGeometry args={[Math.max(8, Math.min(metrics.width, metrics.depth) * 0.18), Math.max(11, Math.min(metrics.width, metrics.depth) * 0.24), 40]} />
+        <meshBasicMaterial color="#7f8b98" transparent opacity={0.14} toneMapped={false} side={THREE.DoubleSide} />
+      </mesh>
+    </group>
+  );
+}
+
 function PlotBuilding({ plot, index, building }) {
   const setSelectedBuilding = useCityStore(s => s.setSelectedBuilding);
   const setSelectedPlotIndex = useCityStore(s => s.setSelectedPlotIndex);
@@ -416,7 +463,9 @@ function PlotBuilding({ plot, index, building }) {
     bevelSegments: 1,
   }), [height]);
 
-  if (!building) return null;
+  if (!building) {
+    return <InactivePlotBuilding shape={shape} height={height} metrics={metrics} />;
+  }
 
   const isSelected = selectedPlotIndex === index;
   const isSearchMatch = searchResults.includes(building.id);

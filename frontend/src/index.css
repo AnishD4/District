@@ -198,9 +198,9 @@ body {
 
 .city-assistant {
   position: absolute;
-  top: 24px;
+  top: 82px;
   right: 24px;
-  z-index: 12;
+  z-index: 14;
   width: min(390px, calc(100vw - 48px));
   max-height: calc(100vh - 140px);
   display: flex;
@@ -210,6 +210,30 @@ body {
   border-radius: 14px;
   pointer-events: auto;
   overflow: hidden;
+}
+
+.city-assistant__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 4px;
+}
+
+.city-assistant__header p {
+  margin: 0 0 3px;
+  color: #9cb0c3;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.city-assistant__header h2 {
+  margin: 0;
+  color: #f4f9ff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
 }
 
 .city-assistant__section {
@@ -239,7 +263,8 @@ body {
 }
 
 .city-assistant input:focus {
-  border-color: rgba(108, 99, 255, 0.7);
+  border-color: rgba(159, 181, 202, 0.85);
+  box-shadow: 0 0 0 3px rgba(111, 134, 155, 0.18);
 }
 
 .city-assistant__results {
@@ -262,10 +287,13 @@ body {
   cursor: pointer;
   padding: 9px 10px;
   text-align: left;
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
 }
 
 .city-assistant__result:hover {
   background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(159, 181, 202, 0.28);
+  transform: translateY(-1px);
 }
 
 .city-assistant__result span {
@@ -302,18 +330,32 @@ body {
 }
 
 .city-assistant__ask button {
-  border: none;
+  min-width: 82px;
+  border: 1px solid rgba(159, 181, 202, 0.5);
   border-radius: 10px;
-  background: var(--accent);
-  color: white;
+  background:
+    linear-gradient(180deg, rgba(159, 181, 202, 0.98), rgba(111, 134, 155, 0.98));
+  color: #071019;
   cursor: pointer;
-  font-weight: 700;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
   padding: 0 13px;
+  text-transform: uppercase;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+  transition: transform 0.14s ease, box-shadow 0.14s ease, filter 0.14s ease;
+}
+
+.city-assistant__ask button:not(:disabled):hover {
+  filter: brightness(1.07);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
 }
 
 .city-assistant__ask button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
+  box-shadow: none;
 }
 
 .city-assistant__answer {
@@ -336,7 +378,7 @@ body {
 
 @media (max-width: 900px) {
   .city-assistant {
-    top: 148px;
+    top: 156px;
     left: 12px;
     right: 12px;
     width: auto;
