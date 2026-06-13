@@ -1,8 +1,32 @@
 import { supabase } from '../lib/supabase.js'
 import { getDemoCity } from '../lib/demoData.js'
+import {
+  formatGoogleApiError,
+  getCityDriveState,
+  listDriveRootFolders,
+  makeDriveCity,
+  makeDriveClient,
+} from '../lib/driveState.js'
 
 export default async function cityRoutes(fastify) {
   fastify.get('/city', async (req, reply) => {
+    const cityDrive = getCityDriveState()
+    if (cityDrive.drive_tokens) {
+      try {
+        const drive = makeDriveClient(cityDrive.drive_tokens)
+        const folders = await listDriveRootFolders(drive)
+        return makeDriveCity(folders)
+      } catch (err) {
+        req.log.error(err, 'Failed to load Drive folders for city')
+        return reply.code(err.code || 500).send({
+          ...formatGoogleApiError(err, 'Failed to load Drive folders'),
+          districts: [],
+          buildings: [],
+          connections: [],
+        })
+      }
+    }
+
     const [districts, buildings, connections] = await Promise.all([
       supabase.from('districts').select('*'),
       supabase

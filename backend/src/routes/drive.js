@@ -1,106 +1,24 @@
-import { google } from 'googleapis'
 import { supabase } from '../lib/supabase.js'
-import { config, getEnv } from '../lib/env.js'
-import { getDemoBuilding } from '../lib/demoData.js'
+import { getEnv } from '../lib/env.js'
+import {
+  CITY_DRIVE_STATE_ID,
+  formatGoogleApiError,
+  getBuildingDriveState,
+  getFrontendDriveRedirect,
+  getOAuth2Client,
+  isOAuthConfigured,
+  listDriveFiles,
+  makeDriveClient,
+  saveDemoImport,
+  saveDemoSync,
+  saveDriveTokens,
+} from '../lib/driveState.js'
 
-const demoDriveState = new Map()
 const IMPORTABLE_MIME_TYPES = new Set([
   'application/vnd.google-apps.document',
   'application/vnd.google-apps.spreadsheet',
   'application/vnd.google-apps.presentation',
 ])
-
-function isOAuthConfigured() {
-  return Boolean(getEnv('GOOGLE_CLIENT_ID') && getEnv('GOOGLE_CLIENT_SECRET') && getEnv('GOOGLE_REDIRECT_URI'))
-}
-
-function formatGoogleApiError(err, fallback) {
-  const googleError = err?.response?.data?.error
-  const message = googleError?.message || err?.message || fallback
-  const reason = googleError?.details?.find(detail => detail.reason)?.reason
-    || err?.errors?.[0]?.reason
-    || null
-  const activationUrl = googleError?.details?.find(detail => detail.metadata?.activationUrl)?.metadata?.activationUrl
-    || err?.errors?.[0]?.extendedHelp
-    || null
-
-  return {
-    error: message,
-    reason,
-    activationUrl,
-  }
-}
-
-function getOAuth2Client() {
-  const clientId = getEnv('GOOGLE_CLIENT_ID')
-  const clientSecret = getEnv('GOOGLE_CLIENT_SECRET')
-  const redirectUri = getEnv('GOOGLE_REDIRECT_URI')
-
-  if (!clientId || !clientSecret || !redirectUri) {
-    throw new Error('Google OAuth is not configured')
-  }
-
-  return new google.auth.OAuth2(clientId, clientSecret, redirectUri)
-}
-
-async function getBuildingDriveState(buildingId) {
-  const { data: building, error } = await supabase
-    .from('buildings')
-    .select('id, drive_tokens, drive_folder_id')
-    .eq('id', buildingId)
-    .maybeSingle()
-
-  if (error) throw error
-  if (building) {
-    return { exists: true, demo: false, ...building }
-  }
-
-  if (getDemoBuilding(buildingId)) {
-    const state = demoDriveState.get(buildingId) || {}
-    return {
-      exists: true,
-      demo: true,
-      id: buildingId,
-      drive_tokens: state.drive_tokens || null,
-      drive_folder_id: state.drive_folder_id || null,
-    }
-  }
-
-  return { exists: false, demo: false }
-}
-
-async function saveDriveTokens(buildingId, tokens) {
-  const state = await getBuildingDriveState(buildingId)
-  if (!state.exists) return { error: new Error('Building not found') }
-
-  if (state.demo) {
-    demoDriveState.set(buildingId, {
-      ...(demoDriveState.get(buildingId) || {}),
-      drive_tokens: tokens,
-    })
-    return { demo: true }
-  }
-
-  return supabase
-    .from('buildings')
-    .update({ drive_tokens: tokens })
-    .eq('id', buildingId)
-}
-
-async function saveDemoSync(buildingId, folderId, files) {
-  demoDriveState.set(buildingId, {
-    ...(demoDriveState.get(buildingId) || {}),
-    drive_folder_id: folderId,
-    synced_files: files,
-  })
-}
-
-async function saveDemoImport(buildingId, files) {
-  demoDriveState.set(buildingId, {
-    ...(demoDriveState.get(buildingId) || {}),
-    imported_files: files,
-  })
-}
 
 async function getFilesRoom(buildingId) {
   const { data: room } = await supabase
@@ -123,22 +41,6 @@ async function getFilesRoom(buildingId) {
   }
 
   return newRoom
-}
-
-function makeDriveClient(tokens) {
-  const oauth2Client = getOAuth2Client()
-  oauth2Client.setCredentials(tokens)
-  return google.drive({ version: 'v3', auth: oauth2Client })
-}
-
-async function listDriveFiles(drive, folderId, pageSize = 50) {
-  const { data } = await drive.files.list({
-    q: folderId ? `'${folderId}' in parents and trashed=false` : 'trashed=false',
-    fields: 'files(id,name,mimeType,modifiedTime,webViewLink)',
-    pageSize,
-  })
-
-  return data.files || []
 }
 
 function isImportableFile(file) {
@@ -229,16 +131,14 @@ async function importDriveFiles({ drive, files, buildingId, demo, log }) {
 
 export default async function driveRoutes(fastify) {
   fastify.get('/status', async (req, reply) => {
-    const { building_id: buildingId } = req.query
-    let building = { exists: false, demo: false, drive_tokens: null, drive_folder_id: null }
+    const { building_id: buildingId = CITY_DRIVE_STATE_ID } = req.query
+    let building
 
-    if (buildingId) {
-      try {
-        building = await getBuildingDriveState(buildingId)
-      } catch (err) {
-        req.log.error(err, 'Failed to read Drive status')
-        return reply.code(500).send({ error: 'Failed to read Drive status' })
-      }
+    try {
+      building = await getBuildingDriveState(buildingId)
+    } catch (err) {
+      req.log.error(err, 'Failed to read Drive status')
+      return reply.code(500).send({ error: 'Failed to read Drive status' })
     }
 
     return {
@@ -246,16 +146,15 @@ export default async function driveRoutes(fastify) {
       connected: Boolean(building.drive_tokens),
       exists: building.exists,
       demo: building.demo,
+      city: Boolean(building.city),
+      source: building.source || null,
       folder_id: building.drive_folder_id || null,
       redirectUri: getEnv('GOOGLE_REDIRECT_URI', null),
     }
   })
 
   fastify.get('/auth', async (req, reply) => {
-    const { building_id: buildingId } = req.query
-    if (!buildingId) {
-      return reply.code(400).send({ error: 'building_id is required' })
-    }
+    const { building_id: buildingId = CITY_DRIVE_STATE_ID } = req.query
 
     const building = await getBuildingDriveState(buildingId)
     if (!building.exists) {
@@ -274,7 +173,6 @@ export default async function driveRoutes(fastify) {
       prompt: 'consent',
       scope: [
         'https://www.googleapis.com/auth/drive.readonly',
-        'https://www.googleapis.com/auth/drive.file',
       ],
       state: buildingId,
     })
@@ -283,7 +181,7 @@ export default async function driveRoutes(fastify) {
   })
 
   fastify.get('/auth/callback', async (req, reply) => {
-    const { code, state: buildingId } = req.query
+    const { code, state: buildingId = CITY_DRIVE_STATE_ID } = req.query
     if (!code || !buildingId) {
       return reply.code(400).send({ error: 'code and state are required' })
     }
@@ -310,7 +208,7 @@ export default async function driveRoutes(fastify) {
       return reply.code(500).send({ error: 'Failed to save Drive authentication' })
     }
 
-    return reply.redirect(`${config.frontendUrl}?building=${buildingId}&drive=connected`)
+    return reply.redirect(getFrontendDriveRedirect(buildingId))
   })
 
   fastify.get('/files', async (req, reply) => {

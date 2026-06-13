@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../../lib/api'
 
 function getMimeIcon(mimeType) {
+  if (mimeType?.includes('folder')) return '[Folder]'
   if (mimeType?.includes('document')) return '[Doc]'
   if (mimeType?.includes('spreadsheet')) return '[Sheet]'
   if (mimeType?.includes('presentation')) return '[Slides]'
@@ -11,6 +12,7 @@ function getMimeIcon(mimeType) {
 }
 
 export function DrivePanel({ building }) {
+  const isDriveFolder = building.source === 'drive' || building.drive_folder_id === building.id
   const [files, setFiles] = useState([])
   const [connected, setConnected] = useState(false)
   const [configured, setConfigured] = useState(false)
@@ -55,7 +57,7 @@ export function DrivePanel({ building }) {
 
   const connectDrive = () => {
     if (!configured) return
-    window.location.href = `/api/drive/auth?building_id=${building.id}`
+    window.location.href = isDriveFolder ? '/api/drive/auth' : `/api/drive/auth?building_id=${building.id}`
   }
 
   const syncFolder = async () => {
@@ -188,20 +190,22 @@ export function DrivePanel({ building }) {
           >
             {importing ? 'Importing...' : 'Import Recent'}
           </button>
-          <button
-            onClick={syncFolder}
-            disabled={syncing}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-secondary)',
-              fontSize: '12px',
-              cursor: 'pointer',
-              opacity: syncing ? 0.5 : 1,
-            }}
-          >
-            {syncing ? 'Syncing...' : 'Folder'}
-          </button>
+          {!isDriveFolder && (
+            <button
+              onClick={syncFolder}
+              disabled={syncing}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-secondary)',
+                fontSize: '12px',
+                cursor: 'pointer',
+                opacity: syncing ? 0.5 : 1,
+              }}
+            >
+              {syncing ? 'Syncing...' : 'Folder'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -220,7 +224,9 @@ export function DrivePanel({ building }) {
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {files.length === 0 && (
           <div style={{ padding: '16px', color: 'var(--text-secondary)', fontSize: '13px' }}>
-            Drive is connected. Import recent files to read Docs, Sheets, Slides, and text files into this building.
+            {isDriveFolder
+              ? 'This Drive folder is empty, or it only contains files Google did not return.'
+              : 'Drive is connected. Import recent files to read Docs, Sheets, Slides, and text files into this building.'}
           </div>
         )}
 

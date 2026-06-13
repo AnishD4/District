@@ -1,8 +1,21 @@
 import { supabase } from '../lib/supabase.js'
 import { getDemoBuilding } from '../lib/demoData.js'
+import {
+  DRIVE_DISTRICT_ID,
+  DRIVE_FOLDER_MIME_TYPE,
+  formatGoogleApiError,
+  getCityDriveState,
+  getDriveFolderMetadata,
+  listDriveFiles,
+  makeDriveClient,
+} from '../lib/driveState.js'
 
 const BUILDING_TYPES = new Set(['project', 'subject', 'personal', 'work'])
 const ROOM_TYPES = new Set(['files', 'notes', 'code', 'docs', 'chat'])
+
+function isUuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+}
 
 function cleanBuildingPayload(body = {}) {
   const payload = {}
@@ -40,8 +53,65 @@ async function getOrCreateFilesRoom(buildingId, roomName = 'Files') {
   return newRoom
 }
 
+async function getDriveFolderBuilding(folderId) {
+  const cityDrive = getCityDriveState()
+  if (!cityDrive.drive_tokens) return null
+
+  const drive = makeDriveClient(cityDrive.drive_tokens)
+  const folder = await getDriveFolderMetadata(drive, folderId)
+  if (!folder) return null
+
+  const files = await listDriveFiles(drive, folder.id, 100)
+  const visibleFiles = files.map(file => ({
+    id: file.id,
+    room_id: `drive-room-${folder.id}`,
+    name: file.name,
+    content: '',
+    drive_file_id: file.id,
+    mime_type: file.mimeType,
+    mimeType: file.mimeType,
+    webViewLink: file.webViewLink,
+    modifiedTime: file.modifiedTime,
+  }))
+
+  return {
+    id: folder.id,
+    district_id: DRIVE_DISTRICT_ID,
+    name: folder.name,
+    type: 'project',
+    position_x: 0,
+    position_z: 0,
+    height: 18,
+    file_count: files.filter(file => file.mimeType !== DRIVE_FOLDER_MIME_TYPE).length,
+    last_updated: folder.modifiedTime,
+    drive_folder_id: folder.id,
+    drive_web_url: folder.webViewLink,
+    source: 'drive',
+    demo: true,
+    rooms: [{
+      id: `drive-room-${folder.id}`,
+      building_id: folder.id,
+      name: 'Drive Files',
+      room_type: 'files',
+      files: visibleFiles,
+    }],
+  }
+}
+
 export default async function buildingRoutes(fastify) {
   fastify.get('/:id', async (req, reply) => {
+    if (!isUuid(req.params.id)) {
+      try {
+        const driveBuilding = await getDriveFolderBuilding(req.params.id)
+        if (driveBuilding) return driveBuilding
+      } catch (err) {
+        req.log.error(err, 'Failed to load Drive folder building')
+        return reply.code(err.code || 500).send(formatGoogleApiError(err, 'Failed to load Drive folder'))
+      }
+
+      return reply.code(404).send({ error: 'Building not found' })
+    }
+
     const { data, error } = await supabase
       .from('buildings')
       .select('*, rooms(*, files(*))')

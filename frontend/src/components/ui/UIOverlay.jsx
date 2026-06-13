@@ -8,6 +8,11 @@ import { api } from '../../lib/api'
 export function UIOverlay() {
   const activePanels = useCityStore(s => s.activePanels)
   const cameraMode = useCityStore(s => s.cameraMode)
+  const buildings = useCityStore(s => s.buildings)
+  const loading = useCityStore(s => s.loading)
+  const citySource = useCityStore(s => s.citySource)
+  const cityError = useCityStore(s => s.cityError)
+  const cityActivationUrl = useCityStore(s => s.cityActivationUrl)
   const addBuilding = useCityStore(s => s.addBuilding)
 
   const handleAddBuilding = async () => {
@@ -99,6 +104,36 @@ export function UIOverlay() {
       >
         +
       </button>
+
+      {!loading && (cityError || (citySource === 'drive' && buildings.length === 0)) && (
+        <div style={{
+          pointerEvents: 'auto',
+          position: 'absolute',
+          top: '88px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 'min(460px, calc(100vw - 32px))',
+          zIndex: 15,
+        }}>
+          <div className="glass-panel" style={{
+            borderRadius: '12px',
+            padding: '14px 16px',
+            color: 'var(--text-secondary)',
+            fontSize: '13px',
+            lineHeight: 1.5,
+            textAlign: 'center',
+          }}>
+            {cityError || 'Drive is connected, but no top-level Google Drive folders were found. Create folders in My Drive to make buildings.'}
+            {cityActivationUrl && (
+              <div style={{ marginTop: '8px' }}>
+                <a href={cityActivationUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>
+                  Enable Google Drive API
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Right-side panels */}
       {activePanels.includes('building') && (

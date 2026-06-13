@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { Canvas } from '@react-three/fiber'
 import { CityScene } from './components/city/CityScene'
 import { UIOverlay } from './components/ui/UIOverlay'
+import { DriveConnectOverlay } from './components/ui/DriveConnectOverlay'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { useCityData } from './hooks/useCityData'
 
@@ -24,6 +25,7 @@ export default function App() {
           <CityScene />
         </Canvas>
         <UIOverlay />
+        <DriveConnectOverlay />
       </div>
     </ErrorBoundary>
   )

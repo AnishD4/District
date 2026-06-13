@@ -54,7 +54,7 @@ fastify.get('/', async () => ({
     buildings: '/buildings/:id',
     aiChat: '/ai/chat',
     aiEmbed: '/ai/embed',
-    driveAuth: '/drive/auth?building_id=:id',
+    driveAuth: '/drive/auth',
     search: '/search?q=...',
   },
 }))
