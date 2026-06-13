@@ -61,7 +61,7 @@ function CarModel({ scene }) {
     clone.position.sub(center);
     clone.position.y -= scaledBox.min.y;
 
-    clone.rotation.y = Math.PI;
+    clone.rotation.y = 0;
     return clone;
   }, [scene]);
 

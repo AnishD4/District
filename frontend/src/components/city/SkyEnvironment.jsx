@@ -124,8 +124,12 @@ function SceneClouds({ opacity, color }) {
 function CelestialBody({ timeOfDay, preset }) {
   const isNight = timeOfDay === 'night';
   const position = useMemo(() => {
-    const [x, y, z] = isNight ? [-180, 190, -260] : preset.sunPos;
-    return [centerX + x, Math.max(36, y), centerZ + z];
+    const [x, y, z] = isNight ? [-260, 210, -420] : preset.sunPos;
+    return [
+      centerX + x * 3.4,
+      Math.max(140, y + 130),
+      centerZ + z * 3.4,
+    ];
   }, [isNight, preset.sunPos]);
   const radius = isNight ? 16 : 24;
   const color = isNight ? '#d8e6ff' : '#fff2b6';
