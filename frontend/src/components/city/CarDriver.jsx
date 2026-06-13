@@ -68,7 +68,7 @@ function CarModel({ scene }) {
   return <primitive object={car} />;
 }
 
-export function CarDriver({ infrastructureRoot }) {
+export function CarDriver({ infrastructureRoot, occupiedPlotIndexes = [] }) {
   const { camera } = useThree();
   const { scene: carScene } = useGLTF(CAR_MODEL_URL);
   const cameraMode = useCityStore((s) => s.cameraMode);
@@ -85,7 +85,10 @@ export function CarDriver({ infrastructureRoot }) {
   const spawned = useRef(false);
   const ambientRef = useRef(null);
   const ambientStopTimer = useRef(null);
-  const footprints = useMemo(() => getBuildingFootprints(), []);
+  const footprints = useMemo(
+    () => getBuildingFootprints(occupiedPlotIndexes),
+    [occupiedPlotIndexes],
+  );
   const colliders = useMemo(
     () => (infrastructureRoot ? buildMeshColliders(infrastructureRoot) : []),
     [infrastructureRoot],

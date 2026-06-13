@@ -83,6 +83,29 @@ export default async function aiRoutes(fastify) {
     })
   })
 
+  fastify.post('/files', async (req, reply) => {
+    const { question, context } = req.body || {}
+
+    if (!question?.trim()) {
+      return reply.code(400).send({ error: 'question is required' })
+    }
+
+    const prompt = buildFileQuestionPrompt(question, context)
+
+    try {
+      const result = await getGeminiPro().generateContent(prompt)
+      const answer = result?.response?.text?.() || ''
+      return { answer: answer.trim() || 'I could not find enough file context to answer that.' }
+    } catch (err) {
+      req.log.error(err, 'Failed to answer file question')
+      const message = String(err?.message || '').toLowerCase()
+      if (message.includes('429') || message.includes('quota')) {
+        return reply.code(429).send({ error: 'Gemini quota is exhausted. Try again later or use a different Gemini key.' })
+      }
+      return reply.code(503).send({ error: 'AI file question service is unavailable' })
+    }
+  })
+
   fastify.post('/embed', async (req, reply) => {
     const { building_id: buildingId } = req.body || {}
     if (!buildingId) {
@@ -96,6 +119,45 @@ export default async function aiRoutes(fastify) {
       return reply.code(500).send({ error: 'Embedding update failed' })
     }
   })
+}
+
+function cleanText(value, maxLength = 300) {
+  return String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, maxLength)
+}
+
+function buildFileQuestionPrompt(question, context) {
+  const buildings = Array.isArray(context) ? context.slice(0, 30) : []
+  const contextText = buildings.map((building, buildingIndex) => {
+    const files = Array.isArray(building.files) ? building.files.slice(0, 35) : []
+    const fileText = files.length
+      ? files.map((file, fileIndex) => {
+        const content = cleanText(file.content, 900)
+        const contentLine = content ? `\n    Snippet: ${content}` : ''
+        return `  ${fileIndex + 1}. ${cleanText(file.name, 180)} (${cleanText(file.type, 80) || 'file'})${contentLine}`
+      }).join('\n')
+      : '  [No files loaded for this folder yet]'
+
+    return `Folder ${buildingIndex + 1}: ${cleanText(building.name, 160)}
+Plot: ${cleanText(building.plot, 20)}
+Type: ${cleanText(building.type, 80)}
+File count: ${Number(building.file_count) || files.length}
+Files:
+${fileText}`
+  }).join('\n\n')
+
+  return `You are District's AI file assistant.
+The user connected Google Drive. Each top-level Drive folder is represented as a building.
+Answer using only the folder and file context below. If the context only contains file names, say what can be inferred from names and be clear when content was not available.
+Keep the answer concise and mention the relevant building/folder names.
+
+Question:
+${cleanText(question, 1000)}
+
+Drive city context:
+${contextText || '[No Drive folders or files are loaded yet]'}`
 }
 
 async function triggerEmbeddingUpdate(buildingId, log) {

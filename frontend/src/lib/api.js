@@ -32,6 +32,19 @@ export const api = {
     body: JSON.stringify({ building_id: buildingId, messages, stream: true })
   }),
 
+  askFiles: async (question, context) => {
+    const response = await fetch(`${BASE}/ai/files`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, context })
+    })
+    const data = await response.json()
+    if (!response.ok) {
+      throw new Error(data.error || 'File AI request failed')
+    }
+    return data
+  },
+
   // Embeddings
   embed: (buildingId) => fetch(`${BASE}/ai/embed`, {
     method: 'POST',

@@ -15,9 +15,9 @@ export function DriveModeOverlay() {
           Exit drive
         </button>
         <div className="drive-overlay__hud glass-panel">
-          <p>W / S — drive & brake</p>
-          <p>A / D — steer</p>
-          <p>Click — look around · Esc — exit</p>
+          <p>W accelerates. S brakes and reverses.</p>
+          <p>A / D steer. Space slows quickly.</p>
+          <p>Click to look around. Esc exits drive mode.</p>
         </div>
       </div>
     );

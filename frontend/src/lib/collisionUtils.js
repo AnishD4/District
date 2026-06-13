@@ -10,8 +10,13 @@ const _origin = new THREE.Vector3();
 const _normal = new THREE.Vector3();
 
 /** 2D plot footprints used as building collision zones. */
-export function getBuildingFootprints(plots = plotsData) {
-  return plots.map((plot, index) => ({
+export function getBuildingFootprints(occupiedIndexes = null, plots = plotsData) {
+  const occupied = Array.isArray(occupiedIndexes) ? new Set(occupiedIndexes) : null;
+
+  return plots
+    .map((plot, index) => ({ plot, index }))
+    .filter(({ index }) => !occupied || occupied.has(index))
+    .map(({ plot, index }) => ({
     points: plot.map(([x, , z]) => [x, z]),
     height: getBuildingHeight(index, plot),
     inset: 1.4,
@@ -129,7 +134,7 @@ export function resolveBuildingCollisions(x, z, radius, footprints = getBuilding
 }
 
 /** Keep the car on drivable city bounds with a soft margin. */
-export function clampToMapBounds(x, z, margin = 18) {
+export function clampToMapBounds(x, z, margin = 24) {
   return [
     THREE.MathUtils.clamp(x, PLOT_BOUNDS.minX + margin, PLOT_BOUNDS.maxX - margin),
     THREE.MathUtils.clamp(z, PLOT_BOUNDS.minZ + margin, PLOT_BOUNDS.maxZ - margin),

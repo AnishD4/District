@@ -1,10 +1,10 @@
 import { useCityStore } from '../../store/cityStore';
 
 const PRESETS = [
-  { id: 'dawn', label: 'Dawn', icon: '🌅' },
-  { id: 'day', label: 'Day', icon: '☀️' },
-  { id: 'dusk', label: 'Dusk', icon: '🌇' },
-  { id: 'night', label: 'Night', icon: '🌙' },
+  { id: 'dawn', label: 'Dawn', icon: 'AM' },
+  { id: 'day', label: 'Day', icon: 'SUN' },
+  { id: 'dusk', label: 'Dusk', icon: 'PM' },
+  { id: 'night', label: 'Night', icon: 'MOON' },
 ];
 
 export function TimeOfDayToggle() {

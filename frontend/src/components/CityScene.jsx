@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { Billboard, Text, useGLTF } from '@react-three/drei';
 import plotsData from '../data/plots.json';
@@ -363,10 +363,44 @@ function PlotLabel({ metrics, height, building, index }) {
   );
 }
 
+function BuildingSpotlight({ metrics, height, palette }) {
+  const lightRef = useRef(null);
+  const targetRef = useRef(null);
+  const radius = Math.max(20, Math.min(72, Math.max(metrics.width, metrics.depth) * 0.58));
+
+  useEffect(() => {
+    if (lightRef.current && targetRef.current) {
+      lightRef.current.target = targetRef.current;
+    }
+  }, []);
+
+  return (
+    <group>
+      <object3D ref={targetRef} position={[metrics.centerX, Math.max(8, height * 0.35), metrics.centerZ]} />
+      <spotLight
+        ref={lightRef}
+        position={[metrics.centerX, height + 105, metrics.centerZ + 28]}
+        color={palette.window}
+        intensity={18}
+        distance={230}
+        angle={0.42}
+        penumbra={0.5}
+        decay={1.35}
+        castShadow
+      />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[metrics.centerX, 0.22, metrics.centerZ]}>
+        <ringGeometry args={[radius * 0.62, radius, 80]} />
+        <meshBasicMaterial color={palette.window} transparent opacity={0.45} toneMapped={false} side={THREE.DoubleSide} />
+      </mesh>
+    </group>
+  );
+}
+
 function PlotBuilding({ plot, index, building }) {
   const setSelectedBuilding = useCityStore(s => s.setSelectedBuilding);
   const setSelectedPlotIndex = useCityStore(s => s.setSelectedPlotIndex);
   const selectedPlotIndex = useCityStore(s => s.selectedPlotIndex);
+  const searchResults = useCityStore(s => s.searchResults);
   const { shape, height, palette, metrics } = useMemo(() => ({
     shape: createPlotShape(plot),
     height: getBuildingHeight(index, plot),
@@ -382,7 +416,10 @@ function PlotBuilding({ plot, index, building }) {
     bevelSegments: 1,
   }), [height]);
 
+  if (!building) return null;
+
   const isSelected = selectedPlotIndex === index;
+  const isSearchMatch = searchResults.includes(building.id);
 
   const handleSelect = (event) => {
     event.stopPropagation();
@@ -410,8 +447,8 @@ function PlotBuilding({ plot, index, building }) {
         <extrudeGeometry args={[shape, extrudeSettings]} />
         <meshStandardMaterial
           color={palette.color}
-          emissive={isSelected ? palette.trim : palette.emissive}
-          emissiveIntensity={isSelected ? 0.5 : 0.18}
+          emissive={isSelected || isSearchMatch ? palette.trim : palette.emissive}
+          emissiveIntensity={isSearchMatch ? 0.85 : isSelected ? 0.5 : 0.18}
           metalness={palette.metalness}
           roughness={palette.roughness}
         />
@@ -442,6 +479,7 @@ function PlotBuilding({ plot, index, building }) {
       <FacadeTexture metrics={metrics} height={height} palette={palette} selected={isSelected} />
       <FileNamePanels metrics={metrics} height={height} building={building} palette={palette} selected={isSelected} />
       <PlotLabel metrics={metrics} height={height} building={building} index={index} />
+      {isSearchMatch && <BuildingSpotlight metrics={metrics} height={height} palette={palette} />}
     </group>
   );
 }
@@ -450,6 +488,10 @@ export default function CityScene() {
   const { scene } = useGLTF('/city_infrastructure_base_map.glb');
   const buildings = useCityStore(s => s.buildings);
   const [infrastructureRoot, setInfrastructureRoot] = useState(null);
+  const occupiedPlotIndexes = useMemo(
+    () => buildings.map((building, index) => (building ? index : null)).filter(index => index !== null),
+    [buildings],
+  );
 
   return (
     <group>
@@ -464,7 +506,7 @@ export default function CityScene() {
         />
       ))}
 
-      <CarDriver infrastructureRoot={infrastructureRoot} />
+      <CarDriver infrastructureRoot={infrastructureRoot} occupiedPlotIndexes={occupiedPlotIndexes} />
     </group>
   );
 }

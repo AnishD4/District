@@ -121,6 +121,31 @@ function SceneClouds({ opacity, color }) {
   );
 }
 
+function CelestialBody({ timeOfDay, preset }) {
+  const isNight = timeOfDay === 'night';
+  const position = useMemo(() => {
+    const [x, y, z] = isNight ? [-180, 190, -260] : preset.sunPos;
+    return [centerX + x, Math.max(36, y), centerZ + z];
+  }, [isNight, preset.sunPos]);
+  const radius = isNight ? 16 : 24;
+  const color = isNight ? '#d8e6ff' : '#fff2b6';
+  const glowColor = isNight ? '#89aaff' : '#ffd36b';
+
+  return (
+    <group position={position}>
+      <mesh>
+        <sphereGeometry args={[radius, 32, 32]} />
+        <meshBasicMaterial color={color} toneMapped={false} />
+      </mesh>
+      <mesh>
+        <sphereGeometry args={[radius * 1.75, 32, 32]} />
+        <meshBasicMaterial color={glowColor} transparent opacity={isNight ? 0.13 : 0.2} toneMapped={false} />
+      </mesh>
+      <pointLight color={glowColor} intensity={isNight ? 1.4 : 2.2} distance={700} />
+    </group>
+  );
+}
+
 export function SkyEnvironment() {
   const timeOfDay = useCityStore((s) => s.timeOfDay);
   const preset = ATMOSPHERE_PRESETS[timeOfDay] || ATMOSPHERE_PRESETS.night;
@@ -161,6 +186,7 @@ export function SkyEnvironment() {
       <hemisphereLight args={preset.hemisphere} />
 
       <Environment preset={preset.environment} />
+      <CelestialBody timeOfDay={timeOfDay} preset={preset} />
 
       {preset.showClouds && (
         <SceneClouds opacity={preset.cloudOpacity} color={preset.cloudColor} />

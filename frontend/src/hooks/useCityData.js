@@ -27,6 +27,7 @@ function extractFileRooms(building) {
       name: file.name,
       type: file.mimeType || file.mime_type || 'file',
       url: file.webViewLink || null,
+      content: file.content || '',
     }))
 }
 
