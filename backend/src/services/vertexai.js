@@ -1,23 +1,57 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { getEnv, requireEnv } from '../lib/env.js'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
+let genAI = null
 
-// Chat model — long context for building conversations
-export const geminiPro = genAI.getGenerativeModel({
-  model: 'gemini-1.5-pro',
-  generationConfig: { maxOutputTokens: 2048, temperature: 0.7 },
-})
-
-// Fast model — quick lookups and summaries
-export const geminiFlash = genAI.getGenerativeModel({
-  model: 'gemini-1.5-flash',
-  generationConfig: { maxOutputTokens: 512, temperature: 0.3 },
-})
-
-// Embedding model — 768-dim vectors for pgvector
-export const getEmbedding = async (text) => {
-  const embeddingModel = genAI.getGenerativeModel({ model: 'text-embedding-004' })
-  const result = await embeddingModel.embedContent(text)
-  return result.embedding.values
+function getGenAI() {
+  if (!genAI) {
+    genAI = new GoogleGenerativeAI(requireEnv('GEMINI_API_KEY'))
+  }
+  return genAI
 }
 
+export function getGeminiPro() {
+  return getGenAI().getGenerativeModel({
+    model: getEnv('GEMINI_CHAT_MODEL', 'gemini-2.0-flash'),
+    generationConfig: { maxOutputTokens: 2048, temperature: 0.7 },
+  })
+}
+
+export function getGeminiFlash() {
+  return getGenAI().getGenerativeModel({
+    model: getEnv('GEMINI_FLASH_MODEL', 'gemini-2.0-flash'),
+    generationConfig: { maxOutputTokens: 512, temperature: 0.3 },
+  })
+}
+
+export async function getEmbedding(text) {
+  if (!text?.trim()) {
+    throw new Error('Cannot generate an embedding for empty text')
+  }
+
+  const apiKey = requireEnv('GEMINI_API_KEY')
+  const model = getEnv('GEMINI_EMBEDDING_MODEL', 'gemini-embedding-001')
+  const dimensions = Number.parseInt(getEnv('GEMINI_EMBEDDING_DIMENSIONS', '768'), 10)
+
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:embedContent?key=${apiKey}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      content: { parts: [{ text }] },
+      outputDimensionality: dimensions,
+    }),
+  })
+
+  if (!response.ok) {
+    const errorBody = await response.text()
+    throw new Error(`Gemini embedding API error (${response.status}): ${errorBody}`)
+  }
+
+  const result = await response.json()
+
+  if (!result?.embedding?.values?.length) {
+    throw new Error('Gemini embedding API returned an unexpected response')
+  }
+
+  return result.embedding.values
+}

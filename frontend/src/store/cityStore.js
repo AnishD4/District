@@ -5,6 +5,9 @@ export const useCityStore = create((set, get) => ({
   districts: [],
   buildings: [],
   connections: [],
+  citySource: null,
+  cityError: null,
+  cityActivationUrl: null,
 
   // Selection state
   hoveredBuilding: null,
@@ -21,7 +24,13 @@ export const useCityStore = create((set, get) => ({
   loading: true,
 
   // Actions
-  setCityData: (data) => set({ ...data, loading: false }),
+  setCityData: (data) => set({
+    ...data,
+    citySource: data.source || null,
+    cityError: data.error || null,
+    cityActivationUrl: data.activationUrl || null,
+    loading: false,
+  }),
   setHoveredBuilding: (id) => set({ hoveredBuilding: id }),
   setSelectedBuilding: (id) => set({ selectedBuilding: id }),
   setCameraMode: (mode) => set({ cameraMode: mode }),
