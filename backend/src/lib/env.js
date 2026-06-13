@@ -4,14 +4,27 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const backendEnvPath = path.resolve(__dirname, '../../.env')
-const rootEnvPath = path.resolve(__dirname, '../../../.env')
+const backendDir = path.resolve(__dirname, '../..')
+const projectRoot = path.resolve(backendDir, '..')
 
-for (const envPath of [rootEnvPath, backendEnvPath]) {
-  if (fs.existsSync(envPath)) {
-    dotenv.config({ path: envPath, override: envPath === backendEnvPath })
-  }
+const envCandidates = [
+  { path: path.join(projectRoot, '.env'), label: 'project root .env' },
+  { path: path.join(backendDir, '.env'), label: 'backend/.env' },
+]
+
+const loadedEnvFiles = []
+
+for (const candidate of envCandidates) {
+  if (!fs.existsSync(candidate.path)) continue
+
+  dotenv.config({
+    path: candidate.path,
+    override: candidate.path.endsWith(`${path.sep}backend${path.sep}.env`),
+  })
+  loadedEnvFiles.push(candidate.label)
 }
+
+export const envSources = loadedEnvFiles
 
 export function getEnv(name, fallback = undefined) {
   const value = process.env[name]

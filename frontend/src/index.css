@@ -43,6 +43,61 @@ body {
   overflow: hidden;
 }
 
+/* Ambient sky gradient behind the canvas */
+.app-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  transition: background 1.2s ease;
+}
+
+.app-shell[data-time="dawn"]::before {
+  background:
+    radial-gradient(ellipse 80% 50% at 70% 15%, rgba(255, 180, 120, 0.35) 0%, transparent 60%),
+    linear-gradient(180deg, #c47a6a 0%, #8a5a6a 40%, #2a1a28 100%);
+}
+
+.app-shell[data-time="day"]::before {
+  background:
+    radial-gradient(ellipse 70% 45% at 60% 10%, rgba(255, 255, 255, 0.25) 0%, transparent 55%),
+    linear-gradient(180deg, #5a9fd4 0%, #7ab8d8 35%, #3a5a78 100%);
+}
+
+.app-shell[data-time="dusk"]::before {
+  background:
+    radial-gradient(ellipse 75% 50% at 30% 12%, rgba(255, 120, 80, 0.4) 0%, transparent 55%),
+    linear-gradient(180deg, #4a2a5a 0%, #6a3a4a 30%, #1a1028 100%);
+}
+
+.app-shell[data-time="night"]::before {
+  background:
+    radial-gradient(ellipse 40% 30% at 75% 8%, rgba(136, 153, 204, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse 100% 60% at 50% 100%, rgba(20, 30, 60, 0.6) 0%, transparent 70%),
+    linear-gradient(180deg, #060a14 0%, #0a1020 40%, #020408 100%);
+}
+
+.app-shell canvas {
+  position: relative;
+  z-index: 1;
+}
+
+/* Subtle vignette overlay */
+.app-shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.25) 100%);
+  transition: opacity 1.2s ease;
+}
+
+.app-shell[data-time="night"]::after {
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.45) 100%);
+}
+
 .app-overlay {
   position: absolute;
   top: 24px;
@@ -51,6 +106,64 @@ body {
   border-radius: 16px;
   max-width: 320px;
   pointer-events: none;
+  z-index: 10;
+}
+
+.app-time-toggle {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.time-toggle {
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 20px;
+}
+
+.time-toggle__btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.time-toggle__btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.time-toggle__btn--active {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 2px 16px rgba(108, 99, 255, 0.35);
+}
+
+.time-toggle__btn--active:hover {
+  background: var(--accent-hover);
+  color: white;
+}
+
+.time-toggle__icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.time-toggle__label {
+  text-transform: capitalize;
 }
 
 .app-overlay__eyebrow {
@@ -320,4 +433,46 @@ body {
 }
 .animate-spin {
   animation: spin 0.6s linear infinite;
+}
+
+.drive-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 12;
+}
+
+.drive-overlay--orbit {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 24px;
+}
+
+.drive-overlay__enter,
+.drive-overlay__exit {
+  pointer-events: auto;
+}
+
+.drive-overlay__exit {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+}
+
+.drive-overlay__hud {
+  position: absolute;
+  bottom: 96px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 18px;
+  border-radius: 14px;
+  text-align: center;
+}
+
+.drive-overlay__hud p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.55;
 }

@@ -27,6 +27,51 @@ export const CITY_CENTER = [
   (PLOT_BOUNDS.minZ + PLOT_BOUNDS.maxZ) / 2,
 ];
 
+const CAMERA_FOV_DEG = 42;
+
+/** Zoom limits so the full map fits in frame without showing void past the terrain. */
+export function getCameraDistanceLimits(aspect = 16 / 9, fitPadding = 1.06) {
+  const width = PLOT_BOUNDS.maxX - PLOT_BOUNDS.minX;
+  const height = PLOT_BOUNDS.maxZ - PLOT_BOUNDS.minZ;
+  const vFov = (CAMERA_FOV_DEG * Math.PI) / 180;
+  const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
+
+  const distForHeight = (height / 2) / Math.tan(vFov / 2);
+  const distForWidth = (width / 2) / Math.tan(hFov / 2);
+  const maxDistance = Math.max(distForHeight, distForWidth) * fitPadding;
+  const minDistance = Math.max(90, Math.min(width, height) * 0.1);
+
+  return { minDistance, maxDistance, fovDeg: CAMERA_FOV_DEG };
+}
+
+/** Terrain plane large enough to fill the view at max zoom from any pan position. */
+export function getTerrainDimensions(maxDistance, aspect = 16 / 9) {
+  const mapWidth = PLOT_BOUNDS.maxX - PLOT_BOUNDS.minX;
+  const mapHeight = PLOT_BOUNDS.maxZ - PLOT_BOUNDS.minZ;
+  const vFov = (CAMERA_FOV_DEG * Math.PI) / 180;
+  const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
+  const viewRadius = maxDistance * Math.tan(Math.max(vFov, hFov) / 2) * 1.35;
+  const panSlack = Math.max(mapWidth, mapHeight) * 0.12;
+
+  return {
+    width: mapWidth + (viewRadius + panSlack) * 2,
+    depth: mapHeight + (viewRadius + panSlack) * 2,
+  };
+}
+
+/** Soft pan limits — keeps the orbit target over the city without feeling locked in. */
+export function getPanBounds() {
+  const mapWidth = PLOT_BOUNDS.maxX - PLOT_BOUNDS.minX;
+  const mapHeight = PLOT_BOUNDS.maxZ - PLOT_BOUNDS.minZ;
+
+  return {
+    minX: PLOT_BOUNDS.minX + mapWidth * 0.06,
+    maxX: PLOT_BOUNDS.maxX - mapWidth * 0.06,
+    minZ: PLOT_BOUNDS.minZ + mapHeight * 0.06,
+    maxZ: PLOT_BOUNDS.maxZ - mapHeight * 0.06,
+  };
+}
+
 export function getPlotArea(plot) {
   let area = 0;
   for (let i = 0; i < plot.length; i++) {

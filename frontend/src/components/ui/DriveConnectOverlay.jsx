@@ -95,9 +95,9 @@ export function DriveConnectOverlay() {
             marginBottom: '16px',
             background: 'rgba(255,255,255,0.03)',
           }}>
-            Google OAuth is not configured yet. Add the Google client ID and secret to
-            <code style={{ margin: '0 4px' }}>backend/.env</code>
-            and restart the backend.
+            Google OAuth is not configured yet. Add <code>GOOGLE_CLIENT_ID</code> and{' '}
+            <code>GOOGLE_CLIENT_SECRET</code> to <code>.env</code> at the project root or{' '}
+            <code>backend/.env</code>, then restart the backend.
             {status.redirectUri && (
               <div style={{ marginTop: '8px' }}>
                 Redirect URI: <code>{status.redirectUri}</code>

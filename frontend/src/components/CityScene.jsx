@@ -1,9 +1,10 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import * as THREE from 'three';
 import { Billboard, Text, useGLTF } from '@react-three/drei';
 import plotsData from '../data/plots.json';
 import { createPlotShape, getBuildingHeight } from '../lib/plotUtils';
 import { useCityStore } from '../store/cityStore';
+import { CarDriver } from './city/CarDriver';
 
 const BUILDING_PALETTE = [
   { color: '#090b11', trim: '#6c63ff', window: '#ffb43b', emissive: '#15132f', metalness: 0.56, roughness: 0.34 },
@@ -14,7 +15,7 @@ const BUILDING_PALETTE = [
   { color: '#08090d', trim: '#b48cff', window: '#ffbf4d', emissive: '#211735', metalness: 0.5, roughness: 0.36 },
 ];
 
-function BaseMap({ scene }) {
+function BaseMap({ scene, onReady }) {
   const clonedScene = useMemo(() => {
     const clone = scene.clone(true);
     clone.traverse((child) => {
@@ -25,6 +26,10 @@ function BaseMap({ scene }) {
     });
     return clone;
   }, [scene]);
+
+  useEffect(() => {
+    onReady?.(clonedScene);
+  }, [clonedScene, onReady]);
 
   return <primitive object={clonedScene} />;
 }
@@ -444,10 +449,11 @@ function PlotBuilding({ plot, index, building }) {
 export default function CityScene() {
   const { scene } = useGLTF('/city_infrastructure_base_map.glb');
   const buildings = useCityStore(s => s.buildings);
+  const [infrastructureRoot, setInfrastructureRoot] = useState(null);
 
   return (
     <group>
-      <BaseMap scene={scene} />
+      <BaseMap scene={scene} onReady={setInfrastructureRoot} />
 
       {plotsData.map((plot, index) => (
         <PlotBuilding
@@ -457,8 +463,11 @@ export default function CityScene() {
           building={buildings[index] || null}
         />
       ))}
+
+      <CarDriver infrastructureRoot={infrastructureRoot} />
     </group>
   );
 }
 
 useGLTF.preload('/city_infrastructure_base_map.glb');
+useGLTF.preload('/micro__car_v1__blue_enerald3d.glb');

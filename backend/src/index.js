@@ -2,7 +2,8 @@ import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import multipart from '@fastify/multipart'
 import { supabase, supabaseAuthMode } from './lib/supabase.js'
-import { config, getFrontendOrigins, trimTrailingSlash } from './lib/env.js'
+import { config, envSources, getEnv, getFrontendOrigins, trimTrailingSlash } from './lib/env.js'
+import { isOAuthConfigured } from './lib/driveState.js'
 
 const fastify = Fastify({
   logger: true,
@@ -82,6 +83,12 @@ fastify.setNotFoundHandler((request, reply) => {
 try {
   await fastify.listen({ port: config.port, host: '0.0.0.0' })
   console.log(`District API running on port ${config.port}`)
+  if (envSources.length > 0) {
+    console.log(`Loaded env from: ${envSources.join(', ')}`)
+  } else {
+    console.warn('No .env file found. Copy backend/.env.example to backend/.env or add a .env at the project root.')
+  }
+  console.log(`Google Drive OAuth: ${isOAuthConfigured() ? 'configured' : 'NOT configured'}`)
 } catch (err) {
   fastify.log.error(err)
   process.exit(1)

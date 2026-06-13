@@ -1,12 +1,17 @@
-import { Suspense, useEffect, useRef } from 'react';
+import { Suspense, useEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Environment, Sky, ContactShadows, Html, Stars } from '@react-three/drei';
+import { ContactShadows, Html } from '@react-three/drei';
 import CityScene from './components/CityScene';
+import { SkyEnvironment } from './components/city/SkyEnvironment';
+import { TerrainBase } from './components/city/TerrainBase';
+import { MapCameraControls } from './components/city/MapCameraControls';
 import { DriveConnectOverlay } from './components/ui/DriveConnectOverlay';
+import { DriveModeOverlay } from './components/ui/DriveModeOverlay';
+import { TimeOfDayToggle } from './components/ui/TimeOfDayToggle';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useCityData } from './hooks/useCityData';
-import { CITY_CENTER, PLOT_BOUNDS } from './lib/plotUtils';
 import { useCityStore } from './store/cityStore';
+import { CITY_CENTER, PLOT_BOUNDS, getCameraDistanceLimits, getTerrainDimensions } from './lib/plotUtils';
 import plotsData from './data/plots.json';
 
 const [centerX, , centerZ] = CITY_CENTER;
@@ -337,49 +342,24 @@ function SceneControls() {
 
 export default function App() {
   useCityData();
-  const themeMode = useCityStore(s => s.themeMode);
-  const cameraMode = useCityStore(s => s.cameraMode);
-  const sceneTheme = SCENE_THEME[themeMode] || SCENE_THEME.day;
+  const timeOfDay = useCityStore((s) => s.timeOfDay);
+  const cameraMode = useCityStore((s) => s.cameraMode);
+  const { maxDistance } = useMemo(() => getCameraDistanceLimits(), []);
+  const shadowScale = useMemo(() => {
+    const { width, depth } = getTerrainDimensions(maxDistance);
+    return Math.max(width, depth);
+  }, [maxDistance]);
 
   return (
     <ErrorBoundary>
-      <div className={`app-shell app-shell--${themeMode}`}>
+      <div className="app-shell" data-time={timeOfDay}>
         <Canvas
           camera={{ position: cameraPosition, fov: 42, near: 1, far: 5000 }}
           shadows
           gl={{ antialias: true }}
         >
-          <color attach="background" args={[sceneTheme.background]} />
-          <fog attach="fog" args={[sceneTheme.fog, sceneTheme.fogNear, sceneTheme.fogFar]} />
-
-          {themeMode === 'day' ? (
-            <Sky
-              distance={450000}
-              sunPosition={sceneTheme.sunPosition}
-              inclination={0.52}
-              azimuth={0.25}
-            />
-          ) : (
-            <Stars radius={900} depth={80} count={2200} factor={4} fade speed={0.35} />
-          )}
-
-          <ambientLight intensity={sceneTheme.ambient} />
-          <directionalLight
-            position={sceneTheme.sunPosition}
-            intensity={sceneTheme.directional}
-            castShadow
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
-            shadow-camera-left={-900}
-            shadow-camera-right={900}
-            shadow-camera-top={900}
-            shadow-camera-bottom={-900}
-            shadow-camera-near={0.5}
-            shadow-camera-far={1200}
-          />
-          <hemisphereLight args={sceneTheme.hemisphere} />
-
-          <Environment preset="city" />
+          <SkyEnvironment />
+          <TerrainBase />
 
           <Suspense fallback={<SceneLoader />}>
             <CityScene />
@@ -389,33 +369,30 @@ export default function App() {
           <ContactShadows
             position={[centerX, 0.02, centerZ]}
             opacity={0.35}
-            scale={1400}
+            scale={shadowScale}
             blur={2.5}
             far={400}
           />
 
-          <OrbitControls
-            makeDefault
-            enabled={cameraMode !== 'drive'}
-            target={[centerX, 0, centerZ]}
-            enableDamping
-            dampingFactor={0.08}
-            minDistance={120}
-            maxDistance={1200}
-            maxPolarAngle={Math.PI / 2.05}
-          />
+          {cameraMode === 'orbit' && <MapCameraControls />}
         </Canvas>
 
-        <div className="app-overlay glass-panel">
-          <p className="app-overlay__eyebrow">District</p>
-          <h1>City Viewer</h1>
-          <p className="app-overlay__copy">
-            29 mapped plots on the infrastructure base map with procedural building fills.
-          </p>
-          <p className="app-overlay__hint">Drag to orbit - Scroll to zoom - Right-drag to pan</p>
+        {cameraMode === 'orbit' && (
+          <div className="app-overlay glass-panel">
+            <p className="app-overlay__eyebrow">District</p>
+            <h1>City Viewer</h1>
+            <p className="app-overlay__copy">
+              29 mapped plots on the infrastructure base map with procedural building fills.
+            </p>
+            <p className="app-overlay__hint">Drag to orbit · Scroll to zoom · Right-drag to pan</p>
+          </div>
+        )}
+
+        <div className="app-time-toggle">
+          <TimeOfDayToggle />
         </div>
 
-        <SceneControls />
+        <DriveModeOverlay />
         <DriveConnectOverlay />
         <PlotFilesPanel />
       </div>
