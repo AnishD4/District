@@ -4,10 +4,10 @@
 
 set -e
 
-PROJECT_ID="ai-city-hackathon"
+PROJECT_ID="district-hackathon"
 REGION="us-central1"
-SERVICE_NAME="ai-city-api"
-IMAGE="us-central1-docker.pkg.dev/${PROJECT_ID}/ai-city/api:latest"
+SERVICE_NAME="district-api"
+IMAGE="us-central1-docker.pkg.dev/${PROJECT_ID}/district/api:latest"
 
 echo "🏗️  Building Docker image..."
 docker build -t $IMAGE ../backend/
@@ -25,9 +25,9 @@ gcloud run deploy $SERVICE_NAME \
   --max-instances=5 \
   --memory=1Gi \
   --cpu=1 \
-  --service-account=ai-city-backend@${PROJECT_ID}.iam.gserviceaccount.com \
+  --service-account=district-backend@${PROJECT_ID}.iam.gserviceaccount.com \
   --set-secrets="SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_SERVICE_KEY=SUPABASE_SERVICE_KEY:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest" \
-  --set-env-vars="GCP_PROJECT_ID=${PROJECT_ID},GCP_REGION=${REGION},FRONTEND_URL=https://ai-city.pages.dev"
+  --set-env-vars="GCP_PROJECT_ID=${PROJECT_ID},GCP_REGION=${REGION},FRONTEND_URL=https://district.pages.dev"
 
 echo "✅ Deployed! Getting URL..."
 gcloud run services describe $SERVICE_NAME --region=$REGION --format='value(status.url)'

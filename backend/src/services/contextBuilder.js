@@ -22,7 +22,7 @@ export async function buildBuildingContext(buildingId) {
   const { data: allBuildings } = await supabase.from('buildings').select('id, name')
   const buildingList = allBuildings.map(b => b.name).join(', ')
 
-  return `You are the AI assistant for "${building.name}" in AI City.
+  return `You are the AI assistant for "${building.name}" in District.
 Building type: ${building.type}
 District: This building's project category
 

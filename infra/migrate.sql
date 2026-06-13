@@ -1,5 +1,5 @@
 -- =============================================
--- AI City — Supabase Database Migration
+-- District — Supabase Database Migration
 -- Run this in Supabase → SQL Editor
 -- =============================================
 
@@ -135,7 +135,7 @@ VALUES
 
 INSERT INTO buildings (id, district_id, name, type, position_x, position_z, height)
 VALUES
-  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111', 'AI City App', 'project', -80, 0, 25),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111', 'District App', 'project', -80, 0, 25),
   ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '22222222-2222-2222-2222-222222222222', 'Machine Learning', 'subject', 80, 0, 20),
   ('cccccccc-cccc-cccc-cccc-cccccccccccc', '33333333-3333-3333-3333-333333333333', 'Journal', 'personal', 0, 120, 15);
 

@@ -27,4 +27,4 @@ fastify.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOS
 
 const port = parseInt(process.env.PORT || '3001')
 await fastify.listen({ port, host: '0.0.0.0' })
-console.log(`🏙️  AI City API running on port ${port}`)
+console.log(`🏙️  District API running on port ${port}`)

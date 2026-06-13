@@ -1,4 +1,4 @@
-# AI City — Comprehensive Hackathon Implementation Plan
+# District — Comprehensive Hackathon Implementation Plan
 
 > Ordered for maximum efficiency. Critical path first. Show-only features last.
 > Assumes a team of 3–4. Parallel tracks are labeled [A], [B], [C].
@@ -11,7 +11,7 @@ Every minute saved here is a minute of building. Complete ALL of the following b
 
 ### Accounts & Credentials
 
-- [ ] **Google Cloud Console** — Create project named `ai-city-hackathon`. Enable billing. Note `PROJECT_ID`.
+- [ ] **Google Cloud Console** — Create project named `district-hackathon`. Enable billing. Note `PROJECT_ID`.
 - [ ] **Google APIs** — Enable these APIs in the GCP console:
   - Vertex AI API
   - Google Drive API v3
@@ -25,7 +25,7 @@ Every minute saved here is a minute of building. Complete ALL of the following b
 - [ ] **Supabase** — Create project. Note `SUPABASE_URL` and `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_KEY`.
 - [ ] **Supabase** — Enable pgvector extension: Dashboard → Database → Extensions → search "vector" → enable.
 - [ ] **Cloudflare** — Create account. Note `CLOUDFLARE_ACCOUNT_ID`.
-- [ ] **GCP Service Account** — Create a service account `ai-city-backend@ai-city-hackathon.iam.gserviceaccount.com` with roles: `Vertex AI User`, `Storage Admin`, `Pub/Sub Editor`, `Secret Manager Secret Accessor`. Download JSON key.
+- [ ] **GCP Service Account** — Create a service account `district-backend@district-hackathon.iam.gserviceaccount.com` with roles: `Vertex AI User`, `Storage Admin`, `Pub/Sub Editor`, `Secret Manager Secret Accessor`. Download JSON key.
 - [ ] **Google OAuth 2.0** — In GCP Console → APIs & Services → Credentials → Create OAuth Client ID (Web Application). Add `http://localhost:3000` and your Cloudflare Pages URL to authorized origins. Add `/auth/callback` to redirect URIs. Note `CLIENT_ID` and `CLIENT_SECRET`.
 
 ### Repository & Tooling
@@ -36,13 +36,13 @@ npm install -g pnpm   # faster than npm for monorepos
 npm install -g @cloudflare/wrangler
 curl https://sdk.cloud.google.com | bash  # Google Cloud SDK
 gcloud auth login
-gcloud config set project ai-city-hackathon
+gcloud config set project district-hackathon
 ```
 
 ### Repository Structure (Create Upfront)
 
 ```
-ai-city/
+district/
 ├── frontend/          # React + Vite + Three.js
 │   ├── src/
 │   │   ├── components/
@@ -74,7 +74,7 @@ ai-city/
 ### Pre-Scaffold the Monorepo
 
 ```bash
-mkdir ai-city && cd ai-city
+mkdir district && cd district
 git init
 # Frontend
 npm create vite@latest frontend -- --template react
@@ -102,7 +102,7 @@ SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_KEY=
 
 # Google Cloud
-GCP_PROJECT_ID=ai-city-hackathon
+GCP_PROJECT_ID=district-hackathon
 GCP_REGION=us-central1
 GOOGLE_APPLICATION_CREDENTIALS=./service-account.json
 
@@ -214,7 +214,7 @@ VALUES
 
 INSERT INTO buildings (id, district_id, name, type, position_x, position_z, height)
 VALUES
-  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111', 'AI City App', 'project', -80, 0, 25),
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111', 'District App', 'project', -80, 0, 25),
   ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', '22222222-2222-2222-2222-222222222222', 'Machine Learning', 'subject', 80, 0, 20),
   ('cccccccc-cccc-cccc-cccc-cccccccccccc', '33333333-3333-3333-3333-333333333333', 'Journal', 'personal', 0, 120, 15);
 ```
@@ -229,20 +229,20 @@ gcloud secrets create GOOGLE_CLIENT_SECRET --data-file=<(echo -n "$GOOGLE_CLIENT
 gcloud secrets create GOOGLE_CLIENT_ID --data-file=<(echo -n "$GOOGLE_CLIENT_ID")
 
 # Grant Cloud Run service account access
-gcloud projects add-iam-policy-binding ai-city-hackathon \
-  --member="serviceAccount:ai-city-backend@ai-city-hackathon.iam.gserviceaccount.com" \
+gcloud projects add-iam-policy-binding district-hackathon \
+  --member="serviceAccount:district-backend@district-hackathon.iam.gserviceaccount.com" \
   --role="roles/secretmanager.secretAccessor"
 ```
 
 ### 1.3 Create GCS Bucket (for PDF text extraction staging)
 
 ```bash
-gcloud storage buckets create gs://ai-city-uploads \
+gcloud storage buckets create gs://district-uploads \
   --location=us-central1 \
   --uniform-bucket-level-access
 
 # Set lifecycle: auto-delete uploads after 24h
-gcloud storage buckets update gs://ai-city-uploads \
+gcloud storage buckets update gs://district-uploads \
   --lifecycle-file=infra/lifecycle.json
 ```
 
@@ -258,7 +258,7 @@ gcloud pubsub topics create drive-notifications
 gcloud pubsub subscriptions create drive-notifications-sub \
   --topic=drive-notifications \
   --push-endpoint=https://YOUR_CLOUD_RUN_URL/drive/webhook \
-  --push-auth-service-account=ai-city-backend@ai-city-hackathon.iam.gserviceaccount.com
+  --push-auth-service-account=district-backend@district-hackathon.iam.gserviceaccount.com
 ```
 
 ---
@@ -1183,7 +1183,7 @@ export async function buildBuildingContext(buildingId) {
   const { data: allBuildings } = await supabase.from('buildings').select('id, name')
   const buildingList = allBuildings.map(b => b.name).join(', ')
 
-  return `You are the AI assistant for "${building.name}" in AI City.
+  return `You are the AI assistant for "${building.name}" in District.
 Building type: ${building.type}
 District: This building's project category
 
@@ -1852,22 +1852,22 @@ Deploy the backend to Cloud Run. This makes the API production-ready and lets yo
 
 ```bash
 # From backend/
-gcloud builds submit --tag gcr.io/ai-city-hackathon/ai-city-api
+gcloud builds submit --tag gcr.io/district-hackathon/district-api
 
 # Or use Artifact Registry (preferred)
-gcloud artifacts repositories create ai-city \
+gcloud artifacts repositories create district \
   --repository-format=docker \
   --location=us-central1
 
-docker build -t us-central1-docker.pkg.dev/ai-city-hackathon/ai-city/api:latest .
-docker push us-central1-docker.pkg.dev/ai-city-hackathon/ai-city/api:latest
+docker build -t us-central1-docker.pkg.dev/district-hackathon/district/api:latest .
+docker push us-central1-docker.pkg.dev/district-hackathon/district/api:latest
 ```
 
 ### 10.2 Deploy to Cloud Run
 
 ```bash
-gcloud run deploy ai-city-api \
-  --image=us-central1-docker.pkg.dev/ai-city-hackathon/ai-city/api:latest \
+gcloud run deploy district-api \
+  --image=us-central1-docker.pkg.dev/district-hackathon/district/api:latest \
   --region=us-central1 \
   --platform=managed \
   --allow-unauthenticated \
@@ -1875,14 +1875,14 @@ gcloud run deploy ai-city-api \
   --max-instances=5 \
   --memory=1Gi \
   --cpu=1 \
-  --service-account=ai-city-backend@ai-city-hackathon.iam.gserviceaccount.com \
+  --service-account=district-backend@district-hackathon.iam.gserviceaccount.com \
   --set-secrets="SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_SERVICE_KEY=SUPABASE_SERVICE_KEY:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest" \
-  --set-env-vars="GCP_PROJECT_ID=ai-city-hackathon,GCP_REGION=us-central1,FRONTEND_URL=https://ai-city.pages.dev"
+  --set-env-vars="GCP_PROJECT_ID=district-hackathon,GCP_REGION=us-central1,FRONTEND_URL=https://district.pages.dev"
 ```
 
 ### 10.3 Cloud Run uses Application Default Credentials for Vertex AI
 
-Because the Cloud Run service runs as the service account `ai-city-backend`, it automatically has `Vertex AI User` role — no API key needed for Gemini. This is more secure than embedding an API key. On local dev, run:
+Because the Cloud Run service runs as the service account `district-backend`, it automatically has `Vertex AI User` role — no API key needed for Gemini. This is more secure than embedding an API key. On local dev, run:
 ```bash
 gcloud auth application-default login
 ```
@@ -1891,7 +1891,7 @@ gcloud auth application-default login
 
 Update `FRONTEND_URL` env var on Cloud Run once Cloudflare Pages URL is known:
 ```bash
-gcloud run services update ai-city-api \
+gcloud run services update district-api \
   --region=us-central1 \
   --set-env-vars="FRONTEND_URL=https://YOUR_ACTUAL_URL.pages.dev"
 ```
@@ -1903,13 +1903,13 @@ cd frontend
 pnpm run build
 
 # One-time setup
-wrangler pages project create ai-city
+wrangler pages project create district
 
 # Deploy
-wrangler pages deploy dist --project-name=ai-city
+wrangler pages deploy dist --project-name=district
 
 # Set environment variables in Cloudflare dashboard:
-# VITE_API_URL = https://ai-city-api-HASH-uc.a.run.app
+# VITE_API_URL = https://district-api-HASH-uc.a.run.app
 ```
 
 Update `vite.config.js` to use env var for API URL:
@@ -1931,8 +1931,8 @@ This is what makes the city feel instant on repeat visits.
 ### 11.1 Service Worker (`frontend/public/sw.js`)
 
 ```js
-const CITY_CACHE = 'ai-city-v1'
-const ASSET_CACHE = 'ai-city-assets-v1'
+const CITY_CACHE = 'district-v1'
+const ASSET_CACHE = 'district-assets-v1'
 
 // Cache static assets on install
 self.addEventListener('install', (e) => {
@@ -1982,7 +1982,7 @@ if ('serviceWorker' in navigator) {
 
 ```js
 // src/lib/offlineStorage.js
-const DB_NAME = 'ai-city-drive', DB_VERSION = 1
+const DB_NAME = 'district-drive', DB_VERSION = 1
 
 export async function openDB() {
   return new Promise((resolve, reject) => {
@@ -2025,14 +2025,14 @@ useEffect(() => {
   if (cameraMode === 'drive') {
     // Lock camera to street level
     gsap.to(camera.position, { y: 3, duration: 0.6, ease: 'power2.inOut' })
-    document.title = 'AI City — Take a Break 🚗'
+    document.title = 'District — Take a Break 🚗'
   } else {
     // Return to orbit position
     gsap.to(camera.position, {
       x: 0, y: 120, z: 180,
       duration: 0.8, ease: 'power2.inOut'
     })
-    document.title = 'AI City'
+    document.title = 'District'
   }
 }, [cameraMode])
 ```
@@ -2114,14 +2114,14 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 const BUILDINGS = [
   {
     id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-    name: 'AI City App',
+    name: 'District App',
     type: 'project',
     district: 'Work',
     rooms: [
       {
         name: 'Source Files', type: 'code',
         files: [
-          { name: 'README.md', content: 'AI City is a spatial knowledge OS. Files live in buildings. Projects are districts. AI assistants are residents...' },
+          { name: 'README.md', content: 'District is a spatial knowledge OS. Files live in buildings. Projects are districts. AI assistants are residents...' },
           { name: 'architecture.md', content: 'Built with React Three Fiber, Gemini 1.5 Pro, Supabase pgvector, Google Cloud Run...' },
         ]
       }
@@ -2151,7 +2151,7 @@ const BUILDINGS = [
       {
         name: 'Entries', type: 'notes',
         files: [
-          { name: '2024-week-22.md', content: "Working on the AI City hackathon project this week. Thinking about how spatial metaphors could replace file systems. The city metaphor feels natural — we intuitively understand that related things live near each other..." },
+          { name: '2024-week-22.md', content: "Working on the District hackathon project this week. Thinking about how spatial metaphors could replace file systems. The city metaphor feels natural — we intuitively understand that related things live near each other..." },
         ]
       }
     ]
@@ -2272,12 +2272,12 @@ const addNote = async (content) => {
 
 ```bash
 # Backend: rebuild and redeploy
-gcloud builds submit --tag gcr.io/ai-city-hackathon/ai-city-api
-gcloud run deploy ai-city-api --image gcr.io/ai-city-hackathon/ai-city-api --region us-central1
+gcloud builds submit --tag gcr.io/district-hackathon/district-api
+gcloud run deploy district-api --image gcr.io/district-hackathon/district-api --region us-central1
 
 # Frontend: build and deploy to Cloudflare Pages
 pnpm run build
-wrangler pages deploy dist --project-name=ai-city
+wrangler pages deploy dist --project-name=district
 
 # Verify health
 curl https://YOUR_CLOUD_RUN_URL/city
@@ -2290,11 +2290,11 @@ SUPABASE_URL=... node infra/seed.js
 
 ```bash
 # Enable Cloud Logging for the service
-gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=ai-city-api" --limit 20
+gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=district-api" --limit 20
 
 # Set up an uptime check
 gcloud monitoring uptime create \
-  --display-name="AI City API Health" \
+  --display-name="District API Health" \
   --resource-type=uptime-url \
   --uri="https://YOUR_CLOUD_RUN_URL/city"
 ```
@@ -2398,7 +2398,7 @@ The spec explicitly marks this as cuttable for the hackathon. Desktop-only is fi
 
 ## GOOGLE CLOUD SERVICES: FULL MAP
 
-| GCP Service | What It Does in AI City |
+| GCP Service | What It Does in District |
 |---|---|
 | **Cloud Run** | Hosts the Fastify API — serverless, auto-scales, HTTPS by default |
 | **Vertex AI** | Runs Gemini 1.5 Pro and text-embedding-004 — no API key in code, uses IAM |

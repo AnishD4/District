@@ -21,8 +21,8 @@ gcloud secrets create GOOGLE_CLIENT_ID --data-file=<(echo -n "$GOOGLE_CLIENT_ID"
 echo "✅ Secrets pushed successfully"
 
 # Grant Cloud Run service account access
-gcloud projects add-iam-policy-binding ai-city-hackathon \
-  --member="serviceAccount:ai-city-backend@ai-city-hackathon.iam.gserviceaccount.com" \
+gcloud projects add-iam-policy-binding district-hackathon \
+  --member="serviceAccount:district-backend@district-hackathon.iam.gserviceaccount.com" \
   --role="roles/secretmanager.secretAccessor"
 
 echo "✅ IAM binding set"
