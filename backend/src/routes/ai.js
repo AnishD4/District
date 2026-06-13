@@ -1,4 +1,4 @@
-import { supabase } from '../index.js'
+import { supabase } from '../lib/supabase.js'
 import { geminiPro, getEmbedding } from '../services/vertexai.js'
 import { buildBuildingContext } from '../services/contextBuilder.js'
 
@@ -32,7 +32,7 @@ export default async function aiRoutes(fastify) {
     let fullResponse = ''
 
     for await (const chunk of stream.stream) {
-      const text = chunk.candidates[0]?.content?.parts[0]?.text || ''
+      const text = chunk.text()
       fullResponse += text
       reply.raw.write(`data: ${JSON.stringify({ text })}\n\n`)
     }

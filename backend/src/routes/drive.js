@@ -1,5 +1,5 @@
 import { google } from 'googleapis'
-import { supabase } from '../index.js'
+import { supabase } from '../lib/supabase.js'
 
 function getOAuth2Client() {
   return new google.auth.OAuth2(

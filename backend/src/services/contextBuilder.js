@@ -1,4 +1,4 @@
-import { supabase } from '../index.js'
+import { supabase } from '../lib/supabase.js'
 
 /**
  * Builds a rich system prompt for Gemini by aggregating all content

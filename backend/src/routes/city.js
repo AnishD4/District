@@ -1,4 +1,4 @@
-import { supabase } from '../index.js'
+import { supabase } from '../lib/supabase.js'
 
 // GET /city — returns full city state (districts, buildings, connections)
 export default async function cityRoutes(fastify) {

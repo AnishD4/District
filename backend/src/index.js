@@ -1,20 +1,19 @@
-import 'dotenv/config'
+import dotenv from 'dotenv'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+dotenv.config({ path: path.resolve(__dirname, '../../.env') })
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import multipart from '@fastify/multipart'
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from './lib/supabase.js'
 
 const fastify = Fastify({ logger: true })
 
 // Plugins
 await fastify.register(cors, { origin: process.env.FRONTEND_URL || 'http://localhost:5173' })
 await fastify.register(multipart)
-
-// Supabase client (service role = bypass RLS for backend)
-export const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-)
 
 // Routes
 await fastify.register(import('./routes/city.js'), { prefix: '/' })

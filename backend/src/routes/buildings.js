@@ -1,4 +1,4 @@
-import { supabase } from '../index.js'
+import { supabase } from '../lib/supabase.js'
 
 export default async function buildingRoutes(fastify) {
   // GET /buildings/:id — building + rooms + files

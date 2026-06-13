@@ -1,5 +1,5 @@
 import { getEmbedding } from '../services/vertexai.js'
-import { supabase } from '../index.js'
+import { supabase } from '../lib/supabase.js'
 
 export default async function searchRoutes(fastify) {
   // GET /search?q=... — semantic search across all buildings

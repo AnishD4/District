@@ -7,12 +7,13 @@
     "start": "node src/index.js"
   },
   "dependencies": {
-    "fastify": "^5.3.3",
     "@fastify/cors": "^11.0.0",
     "@fastify/multipart": "^9.0.0",
     "@google-cloud/vertexai": "^1.9.3",
-    "googleapis": "^146.0.0",
+    "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.49.0",
-    "dotenv": "^16.5.0"
+    "dotenv": "^16.5.0",
+    "fastify": "^5.3.3",
+    "googleapis": "^146.0.0"
   }
 }
