@@ -232,9 +232,18 @@ export function makeDriveCity(folders) {
 }
 
 export function getFrontendDriveRedirect(buildingId) {
-  if (!buildingId || buildingId === CITY_DRIVE_STATE_ID) {
-    return `${config.frontendUrl}?drive=connected`
+  const params = new URLSearchParams({ drive: 'connected' })
+  if (buildingId && buildingId !== CITY_DRIVE_STATE_ID) {
+    params.set('building', buildingId)
   }
 
-  return `${config.frontendUrl}?building=${encodeURIComponent(buildingId)}&drive=connected`
+  try {
+    const target = new URL(config.frontendUrl)
+    const basePath = target.pathname === '/' ? '' : target.pathname.replace(/\/$/, '')
+    target.pathname = `${basePath}/city`
+    target.search = params.toString()
+    return target.toString()
+  } catch {
+    return `/city?${params.toString()}`
+  }
 }

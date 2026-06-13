@@ -7,12 +7,12 @@ import { useCityStore } from '../store/cityStore';
 import { CarDriver } from './city/CarDriver';
 
 const BUILDING_PALETTE = [
-  { color: '#090b11', trim: '#6c63ff', window: '#ffb43b', emissive: '#15132f', metalness: 0.56, roughness: 0.34 },
-  { color: '#080d12', trim: '#4ecdc4', window: '#ffd36b', emissive: '#102a2a', metalness: 0.5, roughness: 0.38 },
-  { color: '#0a0a10', trim: '#ff6b6b', window: '#ff9d22', emissive: '#301316', metalness: 0.48, roughness: 0.42 },
-  { color: '#0c0b0f', trim: '#ffd93d', window: '#ffe28a', emissive: '#2a2510', metalness: 0.44, roughness: 0.4 },
-  { color: '#070b10', trim: '#28b7ff', window: '#ffc857', emissive: '#0f2233', metalness: 0.62, roughness: 0.32 },
-  { color: '#08090d', trim: '#b48cff', window: '#ffbf4d', emissive: '#211735', metalness: 0.5, roughness: 0.36 },
+  { color: '#0a0f16', trim: '#6f869b', window: '#c1b79f', emissive: '#1a2533', metalness: 0.56, roughness: 0.34 },
+  { color: '#0a1016', trim: '#6c9b93', window: '#b8c3af', emissive: '#192b2a', metalness: 0.5, roughness: 0.38 },
+  { color: '#0d0f16', trim: '#8c789f', window: '#baa5b7', emissive: '#2a2131', metalness: 0.48, roughness: 0.42 },
+  { color: '#0f1014', trim: '#9a9180', window: '#c6bfae', emissive: '#2d2b24', metalness: 0.44, roughness: 0.4 },
+  { color: '#090f15', trim: '#6f94a2', window: '#afc2c8', emissive: '#1a2830', metalness: 0.62, roughness: 0.32 },
+  { color: '#0b0e14', trim: '#79859a', window: '#b5b8c6', emissive: '#222737', metalness: 0.5, roughness: 0.36 },
 ];
 
 function BaseMap({ scene, onReady }) {
@@ -268,7 +268,7 @@ function FileNamePanels({ metrics, height, building, palette, selected }) {
               position={[-panelWidth / 2 + 4.4, -0.04, 0.1]}
               fontSize={1.32}
               maxWidth={panelWidth - 6}
-              color="#ffd36b"
+              color="#b8c3af"
               anchorX="left"
               anchorY="middle"
             >
@@ -320,7 +320,7 @@ function FileNamePanels({ metrics, height, building, palette, selected }) {
                 position={[-panelWidth / 2 + 5.5, -0.85, 0.1]}
                 fontSize={1.55}
                 maxWidth={panelWidth - 7}
-                color={building?.files_loading ? '#9fb3c8' : '#ffd36b'}
+                color={building?.files_loading ? '#9fb3c8' : '#b8c3af'}
                 anchorX="left"
                 anchorY="middle"
               >

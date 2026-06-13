@@ -5,11 +5,11 @@ import { useCityStore } from '../../store/cityStore'
 
 function getBuildingColor(type) {
   return {
-    project: '#6c63ff',
-    subject: '#4ecdc4',
-    personal: '#ff6b6b',
-    work: '#ffd93d',
-  }[type] || '#6c63ff'
+    project: '#4fd3ff',
+    subject: '#6fffb8',
+    personal: '#ff6bd6',
+    work: '#ffd84d',
+  }[type] || '#4fd3ff'
 }
 
 function hashString(value = '') {
@@ -28,9 +28,9 @@ function randomFrom(seed, index) {
 
 function getWindowColor(seed, index, active) {
   if (active) {
-    return ['#ff8f1f', '#ffb43b', '#ffd36b'][index % 3]
+    return ['#fff27a', '#ff9b4a', '#7cf7d4'][index % 3]
   }
-  return ['#ff9d22', '#ffc857', '#ffe28a'][Math.floor(randomFrom(seed, index) * 3)]
+  return ['#fff07c', '#ffbf4d', '#72f0ff'][Math.floor(randomFrom(seed, index) * 3)]
 }
 
 function shortFileName(name, maxLength = 18) {
@@ -49,7 +49,7 @@ function FacadeWindows({ width, depth, height, seed, active = false }) {
   const sideCols = Math.max(3, Math.min(6, Math.floor(depth / 2)))
   const panes = []
   const yStep = height / (floors + 1)
-  const density = active ? 0.76 : 0.66
+  const density = active ? 0.82 : 0.72
 
   const sides = [
     { id: 'front', cols: frontCols, span: width, z: depth / 2 + 0.06, rotation: [0, 0, 0] },
@@ -76,9 +76,9 @@ function FacadeWindows({ width, depth, height, seed, active = false }) {
             <meshStandardMaterial
               color={color}
               emissive={color}
-              emissiveIntensity={active ? 1.9 : 1.35}
+              emissiveIntensity={active ? 2.35 : 1.7}
               transparent
-              opacity={0.92}
+              opacity={0.96}
               toneMapped={false}
             />
           </mesh>
@@ -240,7 +240,7 @@ export function BuildingMesh({ building }) {
   }, [building.height, seed])
 
   const isActive = isHovered || isSelected || isSearchMatch
-  const bodyColor = isActive ? '#0fd3df' : '#09090d'
+  const bodyColor = isActive ? '#17dff0' : '#101826'
   const trimColor = isActive ? '#d7fbff' : accentColor
   const fileNames = Array.isArray(building.file_names) ? building.file_names : []
 
@@ -317,9 +317,9 @@ export function BuildingMesh({ building }) {
           <mesh position={[0, style.upperHeight / 2, 0]} castShadow receiveShadow>
             <boxGeometry args={[style.upperWidth, style.upperHeight, style.upperDepth]} />
             <meshStandardMaterial
-              color={isActive ? '#12b8d4' : '#08080b'}
+              color={isActive ? '#12b8d4' : accentColor}
               emissive={isActive ? '#12b8d4' : accentColor}
-              emissiveIntensity={isActive ? 0.28 : 0.05}
+              emissiveIntensity={isActive ? 0.4 : 0.12}
               roughness={0.52}
               metalness={0.32}
             />

@@ -19,20 +19,22 @@ const CAR_MODEL_URL = '/micro__car_v1__blue_enerald3d.glb';
 const DRIVE = {
   maxSpeed: 30,
   reverseMaxSpeed: 10,
-  acceleration: 13,
-  brakeForce: 16,
-  coastDrag: 3.2,
-  steerRate: 2.1,
-  steerSmoothing: 7,
+  acceleration: 11.5,
+  brakeForce: 14,
+  coastDrag: 2.8,
+  steerRate: 1.8,
+  steerSmoothing: 9,
   steerSpeedFactor: 0.35,
+  turnSmoothing: 10,
   bodyRoll: 0.045,
   collisionRadius: 2.3,
   groundOffset: 0.06,
   cameraDistance: 13,
   cameraHeight: 5.5,
   cameraLookAhead: 3.5,
-  cameraSmoothing: 5.5,
-  cameraYawSmoothing: 4,
+  cameraSmoothing: 7,
+  cameraYawSmoothing: 7,
+  cameraTargetSmoothing: 8,
 };
 
 const _forward = new THREE.Vector3();
@@ -79,8 +81,11 @@ export function CarDriver({ infrastructureRoot, occupiedPlotIndexes = [] }) {
   const speed = useRef(0);
   const steerInput = useRef(0);
   const steerAngle = useRef(0);
+  const yawVelocity = useRef(0);
   const cameraYawOffset = useRef(0);
   const cameraPitch = useRef(0.28);
+  const smoothedCameraYaw = useRef(0);
+  const smoothedLookYaw = useRef(0);
   const groundY = useRef(0);
   const spawned = useRef(false);
   const ambientRef = useRef(null);
@@ -145,6 +150,9 @@ export function CarDriver({ infrastructureRoot, occupiedPlotIndexes = [] }) {
       spawned.current = true;
       carRef.current.position.set(spawn.x, spawn.y + DRIVE.groundOffset, spawn.z);
       speed.current = 0;
+      yawVelocity.current = 0;
+      smoothedCameraYaw.current = carRef.current.rotation.y;
+      smoothedLookYaw.current = carRef.current.rotation.y;
       return true;
     };
 
@@ -180,7 +188,11 @@ export function CarDriver({ infrastructureRoot, occupiedPlotIndexes = [] }) {
 
     const onMouseMove = (event) => {
       if (document.pointerLockElement) {
-        cameraYawOffset.current -= event.movementX * 0.0022;
+        cameraYawOffset.current = THREE.MathUtils.clamp(
+          cameraYawOffset.current - event.movementX * 0.0022,
+          -Math.PI * 0.55,
+          Math.PI * 0.55,
+        );
         cameraPitch.current = THREE.MathUtils.clamp(
           cameraPitch.current - event.movementY * 0.0016,
           0.12,
@@ -213,6 +225,7 @@ export function CarDriver({ infrastructureRoot, occupiedPlotIndexes = [] }) {
       speed.current = 0;
       steerInput.current = 0;
       steerAngle.current = 0;
+      yawVelocity.current = 0;
       cameraYawOffset.current = 0;
       cameraPitch.current = 0.28;
     };
@@ -226,6 +239,9 @@ export function CarDriver({ infrastructureRoot, occupiedPlotIndexes = [] }) {
       groundY.current = spawn.y;
       spawned.current = true;
       carRef.current.position.set(spawn.x, spawn.y + DRIVE.groundOffset, spawn.z);
+      yawVelocity.current = 0;
+      smoothedCameraYaw.current = carRef.current.rotation.y;
+      smoothedLookYaw.current = carRef.current.rotation.y;
     }
 
     const dt = Math.min(delta, 0.05);
@@ -272,7 +288,13 @@ export function CarDriver({ infrastructureRoot, occupiedPlotIndexes = [] }) {
     steerAngle.current += steerInput.current * turnRate * dt * Math.sign(speed.current || 1);
     steerAngle.current *= 1 - Math.exp(-2.5 * dt);
 
-    car.rotation.y += steerInput.current * turnRate * dt * (speed.current / DRIVE.maxSpeed);
+    const targetYawVelocity = steerInput.current * turnRate * (speed.current / DRIVE.maxSpeed);
+    yawVelocity.current = THREE.MathUtils.lerp(
+      yawVelocity.current,
+      targetYawVelocity,
+      1 - Math.exp(-DRIVE.turnSmoothing * dt),
+    );
+    car.rotation.y += yawVelocity.current * dt;
 
     _forward.set(Math.sin(car.rotation.y), 0, Math.cos(car.rotation.y));
 
@@ -321,7 +343,28 @@ export function CarDriver({ infrastructureRoot, occupiedPlotIndexes = [] }) {
       1 - Math.exp(-8 * dt),
     );
 
-    const followYaw = car.rotation.y + cameraYawOffset.current;
+    if (!document.pointerLockElement) {
+      cameraYawOffset.current = THREE.MathUtils.lerp(
+        cameraYawOffset.current,
+        0,
+        1 - Math.exp(-1.4 * dt),
+      );
+    }
+
+    const followYawTarget = car.rotation.y + cameraYawOffset.current;
+    smoothedCameraYaw.current = THREE.MathUtils.lerp(
+      smoothedCameraYaw.current,
+      followYawTarget,
+      1 - Math.exp(-DRIVE.cameraYawSmoothing * dt),
+    );
+    const lookYawTarget = THREE.MathUtils.lerp(car.rotation.y, smoothedCameraYaw.current, 0.25);
+    smoothedLookYaw.current = THREE.MathUtils.lerp(
+      smoothedLookYaw.current,
+      lookYawTarget,
+      1 - Math.exp(-DRIVE.cameraTargetSmoothing * dt),
+    );
+
+    const followYaw = smoothedCameraYaw.current;
     const camBack = DRIVE.cameraDistance * Math.cos(cameraPitch.current);
     const camUp = DRIVE.cameraHeight + DRIVE.cameraDistance * Math.sin(cameraPitch.current);
 
@@ -332,9 +375,9 @@ export function CarDriver({ infrastructureRoot, occupiedPlotIndexes = [] }) {
     );
 
     _cameraTarget.set(
-      car.position.x + Math.sin(car.rotation.y) * DRIVE.cameraLookAhead,
+      car.position.x + Math.sin(smoothedLookYaw.current) * DRIVE.cameraLookAhead,
       car.position.y + 1.4,
-      car.position.z + Math.cos(car.rotation.y) * DRIVE.cameraLookAhead,
+      car.position.z + Math.cos(smoothedLookYaw.current) * DRIVE.cameraLookAhead,
     );
 
     const camLerp = 1 - Math.exp(-DRIVE.cameraSmoothing * dt);

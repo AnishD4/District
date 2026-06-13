@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../../lib/api'
+import { BuildingLogo } from './BuildingLogo'
 
 export function DriveConnectOverlay() {
   const [status, setStatus] = useState(null)
@@ -35,71 +36,29 @@ export function DriveConnectOverlay() {
   }
 
   return (
-    <div style={{
-      position: 'absolute',
-      inset: 0,
-      zIndex: 50,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'rgba(6, 6, 10, 0.72)',
-      backdropFilter: 'blur(8px)',
-      pointerEvents: 'auto',
-      padding: '20px',
-    }}>
-      <div className="glass-panel" style={{
-        width: 'min(460px, 100%)',
-        borderRadius: '14px',
-        padding: '24px',
-        boxShadow: '0 20px 80px rgba(0,0,0,0.45)',
-      }}>
-        <div style={{ marginBottom: '18px' }}>
-          <p style={{
-            color: 'var(--accent)',
-            fontSize: '12px',
-            fontWeight: 600,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            marginBottom: '8px',
-          }}>
+    <div className="drive-connect-overlay">
+      <div className="glass-panel drive-connect-card">
+        <div className="drive-connect-card__header">
+          <p className="drive-connect-card__eyebrow">
             Google Drive
           </p>
-          <h1 style={{
-            margin: 0,
-            color: 'white',
-            fontSize: '24px',
-            fontFamily: "'Space Grotesk', sans-serif",
-          }}>
+          <h1>
             Connect your Drive to build the city
           </h1>
         </div>
 
-        <p style={{
-          color: 'var(--text-secondary)',
-          fontSize: '14px',
-          lineHeight: 1.6,
-          marginBottom: '18px',
-        }}>
+        <p className="drive-connect-card__copy">
           District will ask for read access, then turn each top-level Google Drive folder into a building.
           Loose files in My Drive are ignored.
         </p>
 
         {!configured && (
-          <div style={{
-            border: '1px solid var(--border)',
-            borderRadius: '10px',
-            padding: '12px',
-            color: 'var(--text-secondary)',
-            fontSize: '12px',
-            lineHeight: 1.5,
-            marginBottom: '16px',
-            background: 'rgba(255,255,255,0.03)',
-          }}>
+          <div className="drive-connect-card__warning">
             Google OAuth is not configured yet. Add <code>GOOGLE_CLIENT_ID</code> and{' '}
             <code>GOOGLE_CLIENT_SECRET</code> to <code>.env</code> at the project root or{' '}
             <code>backend/.env</code>, then restart the backend.
             {status.redirectUri && (
-              <div style={{ marginTop: '8px' }}>
+              <div className="drive-connect-card__redirect">
                 Redirect URI: <code>{status.redirectUri}</code>
               </div>
             )}
@@ -107,17 +66,17 @@ export function DriveConnectOverlay() {
         )}
 
         {(error || status.error) && (
-          <p style={{ color: '#ff6b6b', fontSize: '12px', lineHeight: 1.5, marginBottom: '16px' }}>
+          <p className="drive-connect-card__error">
             {error || status.error}
           </p>
         )}
 
         <button
           onClick={connectDrive}
-          className="btn-accent"
+          className="btn-accent drive-connect-card__button"
           disabled={!configured}
-          style={{ width: '100%', padding: '12px 16px' }}
         >
+          <BuildingLogo size={18} />
           {configured ? 'Connect Google Drive' : 'OAuth Not Configured'}
         </button>
       </div>
