@@ -1,0 +1,18 @@
+{
+  "name": "ai-city-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "fastify": "^5.3.3",
+    "@fastify/cors": "^11.0.0",
+    "@fastify/multipart": "^9.0.0",
+    "@google-cloud/vertexai": "^1.9.3",
+    "googleapis": "^146.0.0",
+    "@supabase/supabase-js": "^2.49.0",
+    "dotenv": "^16.5.0"
+  }
+}
